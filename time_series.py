@@ -2,23 +2,67 @@ import time
 import numpy
 import csv
 date_format = '%Y-%m-%d %H:%M:%S'
+default_keys = ['start_time','hour','impressions','campaign_id','campaign']
 
 
-def parse(iterable, keys=['start_time','hour','impressions','campaign_id','campaign']):
+def fileparse(filename):
+    reader = csv.reader(open(filename, 'r'))
+    keys = reader.next()
+    return parse(reader, keys)
+
+
+def parse(iterable, keys=default_keys):
     lists = {}
+
+    try:
+        start_time_index = default_keys.index('start_time')
+    except:
+        start_time_index = None
+    try:
+        hour_index = default_keys.index('hour')
+    except:
+        hour_index = None
+    try:
+        impressions_index = default_keys.index('impressions')
+    except:
+        impressions_index = None
+    try:
+        campaign_id_index = default_keys.index('campaign_id')
+    except:
+        campaign_id_index = None
+    try:
+        campaign_index = default_keys.index('campaign')
+    except:
+        campaign_index = None
+
+    indices = [hour_index, impressions_index, campaign_id_index, campaign_index]
+    indices = filter(lambda i: i != None, indices)
+
     for line in iterable:
         try:
-            start_time = time.strptime(line[0], date_format)
-            hour = line[1]
-            impressions = line[2]
-            campaign_id = line[3]
-            campaign = line[4]
-            if not campaign in lists:
-                lists[campaign] = []
+            line_list = []
+            campaign = None
+            if start_time_index:
+                start_time = time.strptime(line[start_time_index], date_format)
+                line_list.append(start_time)
+            if hour_index:
+                hour = time.strptime(line[hour_index], date_format)
+                line_list.append(hour)
+            if impressions_index:
+                impressions = line[impressions_index]
+                line_list.append(impressions)
+            if campaign_id_index:
+                campaign_id = line[campaign_id_index]
+                line_list.append(campaign_id)
+            if campaign_index:
+                campaign = line[campaign_index]
+                line_list.append(campaign)
+            if campaign:
+                if not campaign in lists:
+                    lists[campaign] = []
+                lists[campaign].append(line_list)
         except:
             next
-
-        lists[campaign].append((start_time, impressions))
     return lists
 
 
@@ -94,15 +138,15 @@ def global_list(parsed, granularity=600, relevant_column=1):
     
 
 
-def load_it_all(filename):
+def load_it_all(filename, keys=default_keys):
     with open(filename, 'r') as csvfile:
         reader = csv.reader(csvfile)
         discard = reader.next() # get rid of headers
-        return offsetted(parse(reader))
+        return offsetted(parse(reader, keys))
 
 
-def offset_factors(filename):
-    res = load_it_all(filename)
+def offset_factors(filename, keys=default_keys):
+    res = load_it_all(filename, keys)
 
     max_width = max([res[key].shape[0] for key in res.keys()])
     num_obs = len(res.keys())
