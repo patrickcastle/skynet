@@ -229,8 +229,7 @@ def find_reasonable_decay_length(observations):
 
 def find_reasonable_and_graph(observations):
     decay = find_reasonable_decay_length(observations)[1]
-    nonzero = observations[numpy.where(observations!=0)]
-    graph_decay(decay, nonzero)
+    graph_decay(decay, observations)
 
 
 def test_parse():
