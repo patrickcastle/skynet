@@ -156,8 +156,6 @@ def offset_factors(filename, keys=default_keys):
     max_width = max([res[key].shape[0] for key in res.keys()])
     num_obs = len(res.keys())
 
-    print (num_obs, max_width)
-
     mat = numpy.zeros((num_obs, max_width))
     for i, key in enumerate(res.keys()):
         rows = res[key]
@@ -207,7 +205,6 @@ def find_decay_function(impression_matrix, kernel=(0,0,0)):
                     expected += kernel[j] * column_index ** j
                 errors.append((expected - column) ** 2)
 
-        print (kernel, sum(errors))
         return sum(errors)
 
     return scipy.optimize.minimize(kernel_error, kernel)
@@ -226,15 +223,15 @@ def find_reasonable_decay_length(observations):
     covariance = numpy.identity(2)
     fit_apply = None
     for i, observation in enumerate(logged):
-        print (mean, covariance)
-        print "should be " + str(numpy.array([logged[i]]).shape)
         fit_apply, mean, covariance = bayesian_regression.fit(numpy.array([logged[i]]), design[i].reshape(1,2), mean, covariance)
     return fit_apply, mean, covariance
+
 
 def find_reasonable_and_graph(observations):
     decay = find_reasonable_decay_length(observations)[1]
     nonzero = observations[numpy.where(observations!=0)]
     graph_decay(decay, nonzero)
+
 
 def test_parse():
     parsed = fileparse('series.csv')
