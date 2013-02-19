@@ -4,6 +4,7 @@ import csv
 import scipy.optimize
 import matplotlib
 import matplotlib.pyplot
+import matplotlib.path
 import bayesian_regression
 
 date_format = '%Y-%m-%d %H:%M:%S'
@@ -174,18 +175,6 @@ def find_and_graph_decay(observations):
     graph_decay(decay, observations)
 
 
-def find_decay(observations):
-    nonzero_indices = numpy.where(observations!=0)[0]
-    nonzero = observations[nonzero_indices]
-
-    num_observations = nonzero.shape[0]
-    design = numpy.ones((num_observations,2)) # intercept and decay
-    for i in range(num_observations):
-        design[i,1] = nonzero_indices[i]
-    logged = numpy.log(nonzero) # to prevent NaN all over the goddamn place
-    return numpy.linalg.lstsq(design, logged)[0]
-
-
 def graph_decay(decay, observations):
     line = numpy.zeros(observations.shape[0])
     for i, o in enumerate(observations):
@@ -195,22 +184,7 @@ def graph_decay(decay, observations):
     matplotlib.pyplot.show()
 
 
-def find_decay_function(impression_matrix, kernel=(0,0,0)):
-    def kernel_error(kernel):
-        errors = []
-        for i, row in enumerate(impression_matrix):
-            for column_index, column in enumerate(row):
-                expected = kernel[0]
-                for j in range(1, len(kernel)):
-                    expected += kernel[j] * column_index ** j
-                errors.append((expected - column) ** 2)
-
-        return sum(errors)
-
-    return scipy.optimize.minimize(kernel_error, kernel)
-
-
-def find_reasonable_decay_length(observations):
+def find_decay(observations):
     nonzero_indices = numpy.where(observations!=0)[0]
     nonzero = observations[nonzero_indices]
     logged = numpy.log(nonzero)
@@ -219,21 +193,26 @@ def find_reasonable_decay_length(observations):
     for i in range(nonzero_indices.shape[0]):
         design[i,1] = nonzero_indices[i]
 
-    mean = numpy.array((1,1))
-    covariance = numpy.identity(2)
+    mean = numpy.array((0,0))
+    covariance = numpy.ones((2,2)) * 100000000 + numpy.identity(2) # so it's not singular
     fit_apply = None
     for i, observation in enumerate(logged):
         fit_apply, mean, covariance = bayesian_regression.fit(numpy.array([logged[i]]), design[i].reshape(1,2), mean, covariance)
-    return fit_apply, mean, covariance
+    return mean, covariance, fit_apply
 
 
-def find_reasonable_and_graph(observations):
-    decay = find_reasonable_decay_length(observations)[1]
-    graph_decay(decay, observations)
+def collect_streaming(observations):
+    nonzeros = observations[numpy.where(observations!=0)]
+
+    history = []
+    for i in range(nonzeros.shape[0]):
+        sofar = nonzeros[0:i]
+        mean, covariance, fit_apply = find_decay(sofar)
+        history.append((mean,covariance))
+    return mean, covariance, fit_apply, history
 
 
 def test_parse():
     parsed = fileparse('series.csv')
     offsetted_vals = offsetted(parsed, relevant_columns=[1])
     return offsetted_vals
-    
