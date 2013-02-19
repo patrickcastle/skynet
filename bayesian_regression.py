@@ -3,7 +3,7 @@ import numpy.linalg
 import numpy.random
 
 
-def fit(target, training, mean=None, covariance=None, noise=20):
+def fit(target, training, mean=None, covariance=None, noise=0.05):
     if None == mean:
         mean = numpy.zeros(training.shape[1])
     if None == covariance:
