@@ -247,20 +247,18 @@ def check_campaign(campaign_id, url='https://drawbridge.castleridgemedia.com/'):
         lines.append(line)
 
     doc = lines[0]
-    print doc
     struct = json.loads(doc)
 
     dataframe = []
     for row in struct:
-        print row
         try:
             start_time = time.strptime(row['hour'], date_format)
             impressions = row['impressions']
             dataframe.append((start_time, impressions))
         except:
+            fail = True
     
     dataframe = sorted(dataframe, key=lambda t: t[0])
     offset = offsetted({campaign_id: dataframe})
     
-    print offset
     return should_restart(offset.values()[0][:,1])
