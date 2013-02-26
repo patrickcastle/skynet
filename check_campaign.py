@@ -5,6 +5,6 @@ import time_series
 
 campaign_id = int(sys.argv[1])
 if time_series.check_campaign(campaign_id):
-    print true
+    print 'true'
 else:
-    print false
+    print 'false'
