@@ -213,8 +213,6 @@ def collect_streaming(observations):
     for i in range(observations.shape[0]):
         sofar = observations[0:i]
         mean, covariance, fit_apply = find_decay(sofar)
-        print (mean, covariance)
-        print i
         history.append((mean,covariance))
     return mean, covariance, fit_apply, history
 
@@ -242,30 +240,25 @@ def should_restart(observations):
 
 def check_campaign(campaign_id, url='https://drawbridge.castleridgemedia.com/'):
     query = json.dumps([{'campaigns':[campaign_id]},{"type":0,"parameters":{"stats":["impressions"],"groups":["campaign", "hour"]}}])
-    print query
     url += "calculator/stats_calculator.json?query=%s&drawbridge_access_token=%s" % (query, drawbridge_access_token)
-    print url
     [datafile, headers] = urllib.urlretrieve(url)
     lines = []
     for line in open(datafile, 'r'):
         lines.append(line)
 
     doc = lines[0]
-    print doc
     struct = json.loads(doc)
 
     dataframe = []
     for row in struct:
-        print row
         try:
             start_time = time.strptime(row['hour'], date_format)
             impressions = row['impressions']
             dataframe.append((start_time, impressions))
         except:
-            print "fail"
+            fail = True
     
     dataframe = sorted(dataframe, key=lambda t: t[0])
     offset = offsetted({campaign_id: dataframe})
     
-    print offset
     return should_restart(offset.values()[0][:,1])
