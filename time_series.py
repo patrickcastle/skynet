@@ -2,9 +2,9 @@ import time
 import numpy
 import csv
 import scipy.optimize
-import matplotlib
-import matplotlib.pyplot
-import matplotlib.path
+#import matplotlib
+#import matplotlib.pyplot
+#import matplotlib.path
 import bayesian_regression
 import urllib
 import json
@@ -183,9 +183,9 @@ def graph_decay(decay, observations):
     line = numpy.zeros(observations.shape[0])
     for i, o in enumerate(observations):
         line[i] = numpy.exp(decay[0] + i * decay[1])
-    matplotlib.pyplot.plot(line)
-    matplotlib.pyplot.plot(observations)
-    matplotlib.pyplot.show()
+    #matplotlib.pyplot.plot(line)
+    #matplotlib.pyplot.plot(observations)
+    #matplotlib.pyplot.show()
 
 
 def find_decay(observations):
